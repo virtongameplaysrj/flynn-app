@@ -1,4 +1,4 @@
-# Cria a chave de assinatura do app e cadastra todos os Secrets no GitHub.
+﻿# Cria a chave de assinatura do app e cadastra todos os Secrets no GitHub.
 # Rode UMA vez, depois de "gh auth login" e de o repositório existir:
 #   powershell -ExecutionPolicy Bypass -File scripts\configurar-assinatura.ps1
 #

@@ -47,13 +47,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flynn.care.data.CareItem
-import com.flynn.care.data.ItemType
 import com.flynn.care.data.Repo
 import com.flynn.care.reminders.ReminderScheduler
+import com.flynn.care.ui.HealthScreen
 import com.flynn.care.ui.HistoryScreen
 import com.flynn.care.ui.HomeScreen
-import com.flynn.care.ui.ItemsScreen
 import com.flynn.care.ui.LoginScreen
+import com.flynn.care.ui.WeightScreen
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -117,7 +117,7 @@ private fun MainScaffold(email: String) {
     LaunchedEffect(items) { items?.let { ReminderScheduler.reschedule(ctx, it) } }
     LaunchedEffect(Unit) { update = UpdateChecker.check() }
 
-    val tabs = listOf("Início" to "🏠", "Histórico" to "📋") + ItemType.entries.map { it.tab to it.emoji }
+    val tabs = listOf("Início" to "🏠", "Histórico" to "📋", "Peso" to "⚖️", "Saúde" to "🩺")
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
@@ -161,7 +161,8 @@ private fun MainScaffold(email: String) {
                     onDeleteFeeding = { Repo.deleteFeeding(it.id) },
                 )
                 1 -> HistoryScreen()
-                else -> ItemsScreen(ItemType.entries[tab - 2], items.orEmpty())
+                2 -> WeightScreen(by = name)
+                else -> HealthScreen(items.orEmpty())
             }
         }
     }

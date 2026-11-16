@@ -79,3 +79,6 @@ data class CareItem(
 
 /** Um clique no botão "Dei comida". */
 data class Feeding(val id: String, val at: Instant, val by: String)
+
+/** Uma pesagem do Flynn. */
+data class WeightEntry(val id: String, val date: String, val kg: Double, val by: String)

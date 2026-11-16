@@ -4,6 +4,8 @@ App Android (Kotlin + Jetpack Compose) para nós dois cuidarmos do Flynn:
 
 - **Início**: botão grande **"Dei comida"**, refeições de hoje, total de cliques, última refeição (hora e quem deu), próximos cuidados. Tudo sincronizado entre os 2 celulares em tempo real.
 - **Histórico**: um cartão por dia (últimos 30 dias) com horário de cada refeição, quem deu e quantas cada um deu. Dias sem registro aparecem em vermelho.
+- **Peso**: registrar pesagens (kg + data) e curva de peso com 3 visualizações: **Dia**, **Mês** e **Ano** (mês/ano = média das pesagens do período).
+- **Saúde** (sub-abas Vacinas, Antipulgas e Exames):
 - **Vacinas** e **Antipulgas** (produto + dose): lembretes **2 dias antes, 1 dia antes e no dia**, às 9h.
 - **Exames**: dados e resultados digitados à mão, lembretes **personalizáveis** (quais dias antes e horário).
 

@@ -26,6 +26,7 @@ object Repo {
     private val household get() = db.collection("households").document("flynn")
     private val feedings get() = household.collection("feedings")
     private val items get() = household.collection("items")
+    private val weights get() = household.collection("weights")
 
     /** Último erro de sincronização (ex.: e-mail sem permissão), mostrado num aviso. */
     val lastError = MutableStateFlow<String?>(null)
@@ -97,5 +98,28 @@ object Repo {
 
     fun delete(item: CareItem) {
         if (item.id.isNotBlank()) items.document(item.id).delete().addOnFailureListener { report(it) }
+    }
+
+    // ---- Peso: households/flynn/weights/{id} { date: "yyyy-MM-dd", kg, by }
+
+    fun weights(): Flow<List<WeightEntry>> = callbackFlow {
+        val reg = weights.addSnapshotListener { snap, e ->
+            report(e)
+            if (snap != null) trySend(snap.documents.mapNotNull { d ->
+                val kg = d.getDouble("kg") ?: return@mapNotNull null
+                WeightEntry(d.id, d.getString("date") ?: "", kg, d.getString("by") ?: "")
+            })
+        }
+        awaitClose { reg.remove() }
+    }
+
+    fun saveWeight(date: java.time.LocalDate, kg: Double, by: String) {
+        weights.document()
+            .set(mapOf("date" to date.toString(), "kg" to kg, "by" to by))
+            .addOnFailureListener { report(it) }
+    }
+
+    fun deleteWeight(id: String) {
+        weights.document(id).delete().addOnFailureListener { report(it) }
     }
 }

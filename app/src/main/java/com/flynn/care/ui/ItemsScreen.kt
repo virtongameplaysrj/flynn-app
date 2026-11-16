@@ -21,8 +21,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -31,7 +29,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,9 +46,7 @@ import com.flynn.care.data.DEFAULT_HOUR
 import com.flynn.care.data.FIXED_OFFSETS
 import com.flynn.care.data.ItemType
 import com.flynn.care.data.Repo
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneOffset
 
 /** Uma aba (Vacinas / Antipulgas / Exames). */
 @Composable
@@ -208,20 +203,7 @@ private fun ItemEditor(initial: CareItem, onDismiss: () -> Unit) {
     )
 
     if (pickDate) {
-        // O DatePicker trabalha com milissegundos em UTC à meia-noite.
-        val state = rememberDatePickerState(
-            initialSelectedDateMillis = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
-        )
-        DatePickerDialog(
-            onDismissRequest = { pickDate = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    state.selectedDateMillis?.let { date = Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate() }
-                    pickDate = false
-                }) { Text("OK") }
-            },
-            dismissButton = { TextButton(onClick = { pickDate = false }) { Text("Cancelar") } },
-        ) { DatePicker(state = state) }
+        PickDateDialog(initial = date, onPicked = { date = it }, onDismiss = { pickDate = false })
     }
 
     if (confirmDelete) {

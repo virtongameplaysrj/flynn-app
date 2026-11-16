@@ -1,0 +1,22 @@
+rules_version = '2';
+
+// Cole isto em Firebase Console > Firestore Database > Regras e troque os 2 e-mails.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isFamily() {
+      return request.auth != null
+        && request.auth.token.email in ['SEU_EMAIL@gmail.com', 'EMAIL_DA_ESPOSA@gmail.com'];
+    }
+
+    // Dados do Flynn (documento principal + subcoleções feedings e items)
+    match /households/flynn/{rest=**} {
+      allow read, write: if isFamily();
+    }
+
+    // Todo o resto: bloqueado
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

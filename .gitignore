@@ -1,0 +1,11 @@
+.gradle/
+build/
+.idea/
+*.iml
+local.properties
+.DS_Store
+
+# Segredos — NUNCA versionar (vão para GitHub Secrets)
+app/google-services.json
+*.jks
+*.keystore

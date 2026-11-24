@@ -17,7 +17,7 @@ class FlynnApp : Application() {
         super.onCreate()
         val channel = NotificationChannel(
             ReminderScheduler.CHANNEL, "Lembretes do Flynn", NotificationManager.IMPORTANCE_HIGH,
-        ).apply { description = "Vacinas, antipulgas e exames" }
+        ).apply { description = "Vacinas, antipulgas, exames e colírio" }
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
 
         val sync = PeriodicWorkRequestBuilder<SyncWorker>(6, TimeUnit.HOURS)

@@ -77,8 +77,34 @@ data class CareItem(
     }
 }
 
-/** Um clique no botão "Dei comida". */
-data class Feeding(val id: String, val at: Instant, val by: String)
+/**
+ * Os botões da tela inicial. Cada um grava numa coleção própria do Firestore
+ * (households/flynn/<collection>) com o mesmo formato { at, by }.
+ * "feedings" é a coleção original da comida, então os registros antigos continuam valendo.
+ */
+enum class ActionType(
+    val collection: String,
+    val button: String,   // texto do botão
+    val emoji: String,
+    val tab: String,      // nome da sub-aba no Histórico
+    val did: String,      // "fulano ___ às 12:40"
+    val none: String,     // dia sem registro
+) {
+    FOOD("feedings", "Dei comida", "🍖", "Comida", "deu comida", "Nenhuma refeição registrada"),
+    EYEDROP("eyedrops", "Pinguei colírio", "💧", "Colírio", "pingou colírio", "Nenhum colírio registrado"),
+    TEETH("brushings", "Escovei os dentes", "🪥", "Dentes", "escovou os dentes", "Nenhuma escovação registrada"),
+}
+
+/** Um clique num dos botões da tela inicial. */
+data class CareEvent(val id: String, val type: ActionType, val at: Instant, val by: String)
+
+/**
+ * Meta diária do colírio, guardada no documento households/flynn (vale para os 2 celulares).
+ * goal = 0 → sem meta. reminderHour = -1 → sem lembrete.
+ */
+data class EyedropSettings(val goal: Int = 0, val reminderHour: Int = -1) {
+    val reminderOn get() = goal > 0 && reminderHour in 0..23
+}
 
 /** Uma pesagem do Flynn. */
 data class WeightEntry(val id: String, val date: String, val kg: Double, val by: String)

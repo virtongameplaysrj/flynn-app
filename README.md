@@ -2,8 +2,8 @@
 
 App Android (Kotlin + Jetpack Compose) para nós dois cuidarmos do Flynn:
 
-- **Início**: botão grande **"Dei comida"**, refeições de hoje, total de cliques, última refeição (hora e quem deu), próximos cuidados. Tudo sincronizado entre os 2 celulares em tempo real.
-- **Histórico**: um cartão por dia (últimos 30 dias) com horário de cada refeição, quem deu e quantas cada um deu. Dias sem registro aparecem em vermelho.
+- **Início**: total de refeições hoje (desde a meia-noite), última refeição (hora e quem deu) e 3 botões lado a lado — **🍖 Dei comida**, **💧 Pinguei colírio** e **🪥 Escovei os dentes** — cada um com a contagem do dia. Se alguém registrou o mesmo cuidado há menos de 30 min, o app pergunta antes de registrar de novo. O colírio fica verde ao bater a meta diária; os dentes ficam vermelhos após 3 dias sem escovar. Também mostra os próximos cuidados e os registros recentes (com desfazer/apagar). Tudo sincronizado entre os 2 celulares em tempo real.
+- **Histórico** (sub-abas Comida, Colírio e Dentes): um cartão por dia (últimos 30 dias) com horário, quem fez e quantas vezes cada um fez. Na sub-aba Colírio dá para definir a **meta diária** e um **lembrete** que só avisa se a meta ainda não foi cumprida.
 - **Peso**: registrar pesagens (kg + data) e curva de peso com 3 visualizações: **Dia**, **Mês** e **Ano** (mês/ano = média das pesagens do período).
 - **Saúde** (sub-abas Vacinas, Antipulgas e Exames):
 - **Vacinas** e **Antipulgas** (produto + dose): lembretes **2 dias antes, 1 dia antes e no dia**, às 9h.
@@ -87,9 +87,9 @@ Para lançar uma atualização: altere o código, faça commit/push e crie uma n
 
 ```
 app/src/main/java/com/flynn/care/
-  data/Repo.kt              Firestore (contador atômico, itens, offline)
-  data/Models.kt            CareItem, Feeding
-  data/FeedingStats.kt      regra de "refeições de hoje"
+  data/Repo.kt              Firestore (registros por tipo, itens, peso, offline)
+  data/Models.kt            CareItem, ActionType, CareEvent, EyedropSettings
+  data/EventStats.kt        "hoje" desde a meia-noite, aviso de clique repetido
   reminders/                alarmes locais, notificação, reboot, sync a cada 6h
   ui/                       telas (Início, abas, login)
   UpdateChecker.kt          aviso de nova versão via API do GitHub

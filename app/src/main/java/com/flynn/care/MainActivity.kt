@@ -46,9 +46,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.flynn.care.data.ActionType
+import com.flynn.care.data.CareEvent
 import com.flynn.care.data.CareItem
+import com.flynn.care.data.EyedropSettings
 import com.flynn.care.data.Repo
 import com.flynn.care.reminders.ReminderScheduler
+import com.flynn.care.ui.HISTORY_DAYS
 import com.flynn.care.ui.HealthScreen
 import com.flynn.care.ui.HistoryScreen
 import com.flynn.care.ui.HomeScreen
@@ -108,13 +112,21 @@ private fun MainScaffold(email: String) {
 
     // null = ainda carregando (não reagendar alarmes com lista vazia por engano)
     val items by remember { Repo.items() }.collectAsStateWithLifecycle(initialValue = null as List<CareItem>?)
-    val total by remember { Repo.totalFeedings() }.collectAsStateWithLifecycle(initialValue = 0L)
-    val recent by remember { Repo.recentFeedings() }.collectAsStateWithLifecycle(initialValue = emptyList())
+    // Uma inscrição de 30 dias por botão, compartilhada pela Início e pelo Histórico (null = carregando).
+    val food by remember { Repo.recentEvents(ActionType.FOOD, HISTORY_DAYS.toLong()) }
+        .collectAsStateWithLifecycle(initialValue = null as List<CareEvent>?)
+    val eyedrops by remember { Repo.recentEvents(ActionType.EYEDROP, HISTORY_DAYS.toLong()) }
+        .collectAsStateWithLifecycle(initialValue = null as List<CareEvent>?)
+    val brushings by remember { Repo.recentEvents(ActionType.TEETH, HISTORY_DAYS.toLong()) }
+        .collectAsStateWithLifecycle(initialValue = null as List<CareEvent>?)
+    val events = mapOf(ActionType.FOOD to food, ActionType.EYEDROP to eyedrops, ActionType.TEETH to brushings)
+    val eyedrop by remember { Repo.eyedropSettings() }.collectAsStateWithLifecycle(initialValue = null as EyedropSettings?)
     val error by Repo.lastError.collectAsStateWithLifecycle()
     var update by remember { mutableStateOf<UpdateInfo?>(null) }
     var tab by rememberSaveable { mutableIntStateOf(0) }
 
     LaunchedEffect(items) { items?.let { ReminderScheduler.reschedule(ctx, it) } }
+    LaunchedEffect(eyedrop) { eyedrop?.let { ReminderScheduler.scheduleEyedrop(ctx, it) } }
     LaunchedEffect(Unit) { update = UpdateChecker.check() }
 
     val tabs = listOf("Início" to "🏠", "Histórico" to "📋", "Peso" to "⚖️", "Saúde" to "🩺")
@@ -148,19 +160,21 @@ private fun MainScaffold(email: String) {
             when (tab) {
                 0 -> HomeScreen(
                     email = email,
-                    total = total,
-                    recent = recent,
+                    myName = name,
+                    events = events.mapValues { it.value.orEmpty() },
+                    eyedrop = eyedrop ?: EyedropSettings(),
                     care = items.orEmpty(),
-                    onFeed = {
-                        val id = Repo.feed(name)
+                    onRecord = { type ->
+                        val id = Repo.record(type, name)
                         scope.launch {
-                            val r = snackbar.showSnackbar("Registrado! 🍖", "Desfazer", duration = SnackbarDuration.Short)
-                            if (r == SnackbarResult.ActionPerformed) Repo.deleteFeeding(id)
+                            snackbar.currentSnackbarData?.dismiss()
+                            val r = snackbar.showSnackbar("Registrado! ${type.emoji}", "Desfazer", duration = SnackbarDuration.Short)
+                            if (r == SnackbarResult.ActionPerformed) Repo.deleteEvent(type, id)
                         }
                     },
-                    onDeleteFeeding = { Repo.deleteFeeding(it.id) },
+                    onDelete = { Repo.deleteEvent(it.type, it.id) },
                 )
-                1 -> HistoryScreen()
+                1 -> HistoryScreen(events, eyedrop ?: EyedropSettings(), onSaveEyedrop = Repo::saveEyedropSettings)
                 2 -> WeightScreen(by = name)
                 else -> HealthScreen(items.orEmpty())
             }

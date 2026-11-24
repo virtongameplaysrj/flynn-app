@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import com.flynn.care.data.CareItem
+import com.flynn.care.data.EyedropSettings
 import com.flynn.care.data.ItemType
 import java.time.LocalDate
 import java.time.ZoneId
@@ -63,6 +64,34 @@ object ReminderScheduler {
     fun rescheduleFromCache(ctx: Context) {
         val s = ctx.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("items", null)
         reschedule(ctx, CareItem.listFromJson(s))
+        scheduleEyedrop(ctx, eyedropFromCache(ctx))
+    }
+
+    // ---- Lembrete diário do colírio: dispara na hora escolhida e o EyedropReceiver
+    // confere no Firestore se a meta do dia já foi cumprida antes de avisar.
+
+    const val EYEDROP_NOTIFICATION_ID = 0x0E7E
+    private const val EYEDROP_CODE = 0x0E7E
+
+    fun scheduleEyedrop(ctx: Context, s: EyedropSettings) {
+        val app = ctx.applicationContext
+        val am = app.getSystemService(AlarmManager::class.java) ?: return
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putInt("eyeGoal", s.goal).putInt("eyeHour", s.reminderHour).apply()
+
+        val pi = pending(app, EYEDROP_CODE, Intent(app, EyedropReceiver::class.java))
+        am.cancel(pi)
+        if (!s.reminderOn) return
+
+        val now = ZonedDateTime.now()
+        var at = now.toLocalDate().atTime(s.reminderHour, 0).atZone(now.zone)
+        if (!at.isAfter(now)) at = at.plusDays(1)
+        am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at.toInstant().toEpochMilli(), pi)
+    }
+
+    fun eyedropFromCache(ctx: Context): EyedropSettings {
+        val p = ctx.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        return EyedropSettings(p.getInt("eyeGoal", 0), p.getInt("eyeHour", -1))
     }
 
     private fun pending(ctx: Context, code: Int, intent: Intent): PendingIntent =
